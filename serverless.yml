@@ -1,0 +1,35 @@
+service: naver-band-archiver
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.9
+  region: ap-northeast-2
+  timeout: 300
+  memorySize: 512
+  environment:
+    BAND_ACCESS_TOKEN: ${env:BAND_ACCESS_TOKEN, ''}
+    BAND_KEY: ${env:BAND_KEY, ''}
+    GOOGLE_CREDENTIALS_JSON: ${env:GOOGLE_CREDENTIALS_JSON, ''}
+    DRIVE_FOLDER_ID: ${env:DRIVE_FOLDER_ID, ''}
+
+functions:
+  archiver:
+    handler: src.handler.lambda_handler
+    events:
+      - http:
+          path: archive
+          method: post
+          cors: true
+      - schedule:
+          rate: cron(0 15 * * ? *) # Example: Run every day at 15:00 UTC (00:00 KST)
+          enabled: false # Disabled by default to prevent accidental runs
+
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    dockerizePip: non-linux
+    layer: true
